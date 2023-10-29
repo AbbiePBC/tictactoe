@@ -115,7 +115,7 @@ def utility(board) -> int:
     raise ValueError
 
 
-def max_value(board, prev_action) -> tuple[int, Optional[Action]]:
+def max_value(board, prev_action=None) -> tuple[int, Optional[Action]]:
     """
     Optimise for max value of X
     """
@@ -131,7 +131,7 @@ def max_value(board, prev_action) -> tuple[int, Optional[Action]]:
             action_to_take = action
     return value, action_to_take
 
-def min_value(board, prev_action) -> tuple[int, Optional[Action]]:
+def min_value(board, prev_action=None) -> tuple[int, Optional[Action]]:
     """
     Optimise for min value of O
     """
@@ -147,15 +147,15 @@ def min_value(board, prev_action) -> tuple[int, Optional[Action]]:
             action_to_take = action
     return value, action_to_take
 
-def minimax(board, prev_action=None) -> tuple[int, Optional[Action]]:
+def minimax(board) -> Optional[Action]:
     """
     Returns the optimal action for the current player on the board.
     """
     current_player = player(board)
     if current_player == X:
-        return max_value(board, prev_action)
+        return max_value(board)[1]
     elif current_player == O:
-        return min_value(board, prev_action)
+        return min_value(board)[1]
 
     else:
         raise ValueError
