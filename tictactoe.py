@@ -2,13 +2,15 @@
 Tic Tac Toe Player
 """
 
-import math
+import logging
 import copy
+from typing import Optional
 
 X = "X"
 O = "O"
 EMPTY = None
-
+Action = tuple[int, int]
+logging.basicConfig(level=logging.INFO)
 
 def initial_state():
     """
@@ -18,57 +20,69 @@ def initial_state():
             [EMPTY, EMPTY, EMPTY],
             [EMPTY, EMPTY, EMPTY]]
 
-def player(board) -> int:
+def player(board) -> str:
     """
     Returns player who has the next turn on a board.
     """
 
-    num_x = sum(sum(1) for x in board if x == X)
-    num_o = sum(sum(1) for o in board if o == O)
-
-    return X if num_x > num_o else O
+    num_x, num_o = 0, 0
+    for row in board:
+        for i in row:
+            if i == X:
+                num_x += 1
+            if i == O:
+                num_o += 1
+    logging.info(f"Current player ({num_x} vs {num_o}) {X if num_x < num_o else O}")
+    return X if num_x < num_o else O
 
 def actions(board):
     """
     Returns set of all possible actions (i, j) available on the board.
     """
 
-    possible_moves: set(tuple[int, int]) = set()
+    possible_moves: set[tuple[int, int]] = set()
     for row_idx in range(3):
         for box_idx in range(3):
             if board[row_idx][box_idx] == EMPTY:
                 possible_moves.add((row_idx, box_idx))
 
+    logging.info(f"Possible moves: {possible_moves}")
+
     return possible_moves
 
 
-def result(board, action) -> tuple[list[list[str]], str]:
+def result(board, action) -> tuple[list[list[str]]]:
     """
     Returns the board that results from making move (i, j) on the board.
     """
+    logging.info(f"Finding result for action: {action}")
+    if action is None:
+        return copy.deepcopy(board)
     current_player = player(board)
 
     new_board = copy.deepcopy(board)
     new_board[action[0]][action[1]] = current_player
 
-    return (new_board, current_player)
+    return new_board
 
 
 def winner(board):
     """
     Returns the winner of the game, if there is one.
     """
+    logging.info(f"Finding if we have a winner...")
+
     for row in board:
         if row[0] == row[1] == row[2]:
             return row[0]
-    
+
     for i in range(3):
         if board[0][i] == board[1][i] == board[2][i]:
             return board[0][i]
 
     if board[0][0] == board[1][1] == board[2][2]:
         return board[0][0]
-    
+
     if board[2][0] == board[1][1] == board[0][2]:
         return board[2][0]
 
@@ -85,10 +99,12 @@ def terminal(board):
     return False
 
 
-def utility(board):
+def utility(board) -> int:
     """
     Returns 1 if X has won the game, -1 if O has won, 0 otherwise.
     """
+    logging.info(f"Calculating utility...")
+
     w = winner(board)
     if not w:
         return 0
@@ -96,48 +112,52 @@ def utility(board):
         return 1
     if w == O:
         return -1
+    raise ValueError
 
 
-def X_action(board) -> tuple[int, int]:
+def X_action(board) -> tuple[int, Optional[Action]]:
     """
     Optimise for max value of X
     """
-    value = 10000
-    action_to_take = tuple[int, int]
+    logging.info(f"Finding best action for X...")
+    value: int = 10000
+    action_to_take: Optional[Action] = None
     if terminal(board):
-        return utility(board)
+        return utility(board), action_to_take
     for action in actions(board):
-        min_possible_result_from_action = result(board, action)
+        min_possible_result_from_action, _ = minimax(result(board, action))
         if value < min_possible_result_from_action:
             value = min_possible_result_from_action
             action_to_take = action
     return value, action_to_take
 
-def O_action(board) -> tuple[int, tuple[int, int]]:
+def O_action(board) -> tuple[int, Optional[Action]]:
     """
     Optimise for min value of O
     """
-    value = -10000
-    action_to_take = tuple[int, int]
+    logging.info(f"Finding best action for O...")
+    value: int = -10000
+    action_to_take: Optional[Action] = None
     if terminal(board):
-        return utility(board)
+        return utility(board), action_to_take
     for action in actions(board):
-        max_possible_result_from_action = result(board, action)
+        max_possible_result_from_action, _ = minimax(result(board, action))
         if value > max_possible_result_from_action:
             value = max_possible_result_from_action
             action_to_take = action
     return value, action_to_take
 
-def minimax(board) -> tuple[int, tuple[int, int]]:
+def minimax(board) -> tuple[int, Optional[Action]]:
     """
     Returns the optimal action for the current player on the board.
     """
     current_player = player(board)
     if current_player == X:
-        return X_action
+        return X_action(board)
     elif current_player == O:
-        return O_action
+        return O_action(board)
+
     else:
         raise ValueError
 
-    
+
