@@ -32,8 +32,8 @@ def player(board) -> str:
                 num_x += 1
             if i == O:
                 num_o += 1
-    logging.info(f"Current player ({num_x} vs {num_o}) {X if num_x < num_o else O}")
-    return X if num_x < num_o else O
+    logging.info(f"Current player: {X if num_x <= num_o else O}")
+    return X if num_x <= num_o else O # <= as X starts first
 
 def actions(board):
     """
@@ -95,7 +95,7 @@ def terminal(board):
     """
 
     if winner(board) or len(actions(board)) == 0:
-        return True
+       return True
     return False
 
 
@@ -115,47 +115,47 @@ def utility(board) -> int:
     raise ValueError
 
 
-def X_action(board) -> tuple[int, Optional[Action]]:
+def max_value(board, prev_action) -> tuple[int, Optional[Action]]:
     """
     Optimise for max value of X
     """
     logging.info(f"Finding best action for X...")
-    value: int = 10000
+    value: int = -10000
     action_to_take: Optional[Action] = None
     if terminal(board):
-        return utility(board), action_to_take
+        return utility(board), prev_action
     for action in actions(board):
-        min_possible_result_from_action, _ = minimax(result(board, action))
-        if value < min_possible_result_from_action:
+        min_possible_result_from_action, _ = min_value(result(board, action), action)
+        if min_possible_result_from_action > value:
             value = min_possible_result_from_action
             action_to_take = action
     return value, action_to_take
 
-def O_action(board) -> tuple[int, Optional[Action]]:
+def min_value(board, prev_action) -> tuple[int, Optional[Action]]:
     """
     Optimise for min value of O
     """
     logging.info(f"Finding best action for O...")
-    value: int = -10000
+    value: int = 10000
     action_to_take: Optional[Action] = None
     if terminal(board):
-        return utility(board), action_to_take
+        return utility(board), prev_action
     for action in actions(board):
-        max_possible_result_from_action, _ = minimax(result(board, action))
-        if value > max_possible_result_from_action:
+        max_possible_result_from_action, _ = max_value(result(board, action), action)
+        if max_possible_result_from_action < value:
             value = max_possible_result_from_action
             action_to_take = action
     return value, action_to_take
 
-def minimax(board) -> tuple[int, Optional[Action]]:
+def minimax(board, prev_action=None) -> tuple[int, Optional[Action]]:
     """
     Returns the optimal action for the current player on the board.
     """
     current_player = player(board)
     if current_player == X:
-        return X_action(board)
+        return max_value(board, prev_action)
     elif current_player == O:
-        return O_action(board)
+        return min_value(board, prev_action)
 
     else:
         raise ValueError
