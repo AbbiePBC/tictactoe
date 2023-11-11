@@ -1,4 +1,3 @@
-import random
 import pygame
 import sys
 import time
@@ -113,10 +112,7 @@ while True:
         if user != player and not game_over:
             if ai_turn:
                 time.sleep(0.5)
-                if board == ttt.initial_state():
-                    move = random.choice([[0,0], [0,2], [2,0], [2,2]])
-                else:
-                    move = ttt.minimax(board)
+                move = ttt.minimax(board)
                 board = ttt.result(board, move)
                 ai_turn = False
             else:
