@@ -58,6 +58,13 @@ def result(board, action) -> tuple[list[list[str]]]:
     logging.info(f"Finding result for action: {action}")
     if action is None:
         return copy.deepcopy(board)
+
+    if board[action[0]][action[1]] != EMPTY:
+        raise ValueError("Move has already been made")
+
+    if action[0] not in range(3) or action[1] not in range(3):
+        raise ValueError("Move is not valid")
+
     current_player = player(board)
 
     new_board = copy.deepcopy(board)
@@ -72,18 +79,17 @@ def winner(board):
     """
     logging.info(f"Finding if we have a winner...")
 
-    for row in board:
-        if row[0] == row[1] == row[2]:
-            return row[0]
-
+    # finvd vertical and horizontal wins
     for i in range(3):
-        if board[0][i] == board[1][i] == board[2][i]:
+        if (board[0][i] == board[1][i] == board[2][i] != EMPTY):
             return board[0][i]
+        if (board[i][0] == board[i][1] == board[i][2] != EMPTY):
+            return board[i][0]
 
-    if board[0][0] == board[1][1] == board[2][2]:
+    # find diagonal wins
+    if board[0][0] == board[1][1] == board[2][2] != EMPTY:
         return board[0][0]
-
-    if board[2][0] == board[1][1] == board[0][2]:
+    if board[2][0] == board[1][1] == board[0][2] != EMPTY:
         return board[2][0]
 
     return None
